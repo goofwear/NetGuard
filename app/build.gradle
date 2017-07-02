@@ -1,40 +1,96 @@
-apply plugin: 'com.android.application'
+apply plugin: 'com.android.model.application'
 
-android {
-    compileSdkVersion 23
-    buildToolsVersion "23.0.1"
+model {
+    android {
+        compileSdkVersion = 25
+        buildToolsVersion = "26.0.0"
 
-    defaultConfig {
-        applicationId "eu.faircode.netguard"
-        minSdkVersion 21
-        targetSdkVersion 23
-        versionCode 7
-        versionName "0.7"
-    }
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            applicationVariants.all { variant ->
-                setOutputFile(variant, defaultConfig)
+        defaultConfig {
+            applicationId = "eu.faircode.netguard"
+        }
+
+        compileOptions.with {
+            sourceCompatibility JavaVersion.VERSION_1_7
+            targetCompatibility JavaVersion.VERSION_1_7
+        }
+
+        ndk {
+            platformVersion = "14"
+            moduleName = "netguard"
+            toolchain = "clang"
+            ldLibs.add("log")
+        }
+
+        sources {
+            main {
+                jni {
+                    source {
+                        srcDirs.removeAll()
+                        srcDirs.add('src/main/jni/netguard')
+                    }
+                    exportedHeaders {
+                    }
+                }
+            }
+        }
+
+        buildTypes {
+            release {
+                minifyEnabled = true
+                useProguard = true
+                proguardFiles.add(file('proguard-rules.pro'))
+                ndk.with {
+                    debuggable = false
+                }
+            }
+            debug {
+                minifyEnabled = true
+                useProguard = true
+                proguardFiles.add(file('proguard-rules.pro'))
+                ndk.with {
+                    debuggable = false
+                }
+            }
+        }
+
+        productFlavors {
+            create("all") {
+                versionName = "2.107"
+                minSdkVersion.apiLevel = 14
+                targetSdkVersion.apiLevel = 25
+                versionCode = 2017070201
+                archivesBaseName = "NetGuard-v$versionName"
+            }
+            create("lollipop-and-later") {
+                versionName = "2.107"
+                minSdkVersion.apiLevel = 20
+                targetSdkVersion.apiLevel = 25
+                versionCode = 2017070211
+                archivesBaseName = "NetGuard-v$versionName"
+            }
+            create("kitkat-and-earlier") {
+                versionName = "2.107"
+                minSdkVersion.apiLevel = 14
+                maxSdkVersion = 19
+                targetSdkVersion.apiLevel = 25
+                versionCode = 2017070221
+                archivesBaseName = "NetGuard-v$versionName"
             }
         }
     }
 }
 
-def setOutputFile(variant, defaultConfig) {
-    variant.outputs.each { output ->
-        def fileName = "NetGuard-v" + defaultConfig.versionName + ".apk"
-        if (output.zipAlign)
-            output.outputFile = new File(output.outputFile.parent, fileName)
-        else
-            output.packageApplication.outputFile = new File(output.packageApplication.outputFile.parent, fileName)
-    }
-}
-
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    testCompile 'junit:junit:4.12'
-    compile 'com.android.support:appcompat-v7:23.1.0'
-    compile 'com.android.support:recyclerview-v7:23.1.0'
+    compile 'com.android.support:appcompat-v7:25.+'
+    compile 'com.android.support:support-annotations:25.+'
+    compile 'com.android.support:recyclerview-v7:25.+'
+    compile 'com.squareup.picasso:picasso:2.5.+'
+    compile 'com.google.firebase:firebase-core:11.0.+'
+    compile 'com.google.firebase:firebase-ads:11.0.+'
+    // https://developer.android.com/topic/libraries/support-library/revisions.html
+    // https://mvnrepository.com/artifact/com.squareup.picasso/picasso
+    // https://firebase.google.com/docs/android/setup
 }
+
+apply plugin: 'com.google.gms.google-services'
